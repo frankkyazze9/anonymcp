@@ -6,10 +6,27 @@ classification, and audit tools over the Model Context Protocol.
 
 from __future__ import annotations
 
+import logging
+import sys
 import time
 from typing import Any
 
+# CRITICAL: In stdio transport mode, stdout is the MCP JSON-RPC channel.
+# ALL logging must go to stderr to avoid corrupting the protocol.
+logging.basicConfig(stream=sys.stderr, level=logging.WARNING)
+
 import structlog
+
+# Configure structlog to write to stderr, not stdout
+structlog.configure(
+    processors=[
+        structlog.stdlib.add_log_level,
+        structlog.dev.ConsoleRenderer(),
+    ],
+    wrapper_class=structlog.make_filtering_bound_logger(logging.INFO),
+    logger_factory=structlog.PrintLoggerFactory(file=sys.stderr),
+)
+
 from mcp.server.fastmcp import FastMCP
 
 from anonymcp import __version__
