@@ -117,7 +117,7 @@ def _check_authorization(tool_name: str) -> dict[str, Any] | None:
     return None
 
 
-def _redact_results(results: list[dict]) -> list[dict]:
+def _redact_results(results: list[dict[str, Any]]) -> list[dict[str, Any]]:
     """Strip raw PII values from detection results before returning to callers.
 
     The 'text' field contains the actual PII (SSNs, emails, etc).
@@ -594,7 +594,7 @@ def _run_http() -> None:
         key_roles = parse_api_keys(settings.api_keys)
         starlette_app.add_middleware(APIKeyAuthMiddleware, key_roles=key_roles)
 
-        role_counts = {}
+        role_counts: dict[str, int] = {}
         for role in key_roles.values():
             role_counts[role] = role_counts.get(role, 0) + 1
         logger.info("auth_enabled", num_keys=len(key_roles), roles=role_counts)

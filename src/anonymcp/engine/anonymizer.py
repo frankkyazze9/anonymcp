@@ -38,7 +38,7 @@ class TextAnonymizer:
         anonymizer: AnonymizerEngine | None = None,
         policy: GovernancePolicy | None = None,
     ) -> None:
-        self._anonymizer = anonymizer or AnonymizerEngine()
+        self._anonymizer = anonymizer or AnonymizerEngine()  # type: ignore[no-untyped-call]
         self._policy = policy or GovernancePolicy()
 
     @property
@@ -82,7 +82,7 @@ class TextAnonymizer:
 
         engine_result = self._anonymizer.anonymize(
             text=text,
-            analyzer_results=analyzer_results,
+            analyzer_results=analyzer_results,  # type: ignore[arg-type]
             operators=operators,
         )
 

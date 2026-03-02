@@ -59,7 +59,7 @@ class RecognizerRegistry:
             supported_entity=entity_type,
             name=name,
             patterns=presidio_patterns,
-            context=context_words,
+            context=context_words,  # type: ignore[arg-type]
         )
 
         self._analyzer.registry.add_recognizer(recognizer)
@@ -79,7 +79,7 @@ class RecognizerRegistry:
         """
         if name in self._custom_recognizers:
             recognizer = self._custom_recognizers.pop(name)
-            self._analyzer.registry.remove_recognizer(recognizer.name)
+            self._analyzer.registry.remove_recognizer(recognizer.name)  # type: ignore[has-type]
             logger.info("custom_recognizer_removed", name=name)
             return True
         return False
@@ -90,7 +90,7 @@ class RecognizerRegistry:
             {
                 "name": name,
                 "entity_type": r.supported_entities[0],
-                "pattern_count": len(r.patterns),
+                "pattern_count": len(r.patterns),  # type: ignore[has-type]
             }
             for name, r in self._custom_recognizers.items()
         ]

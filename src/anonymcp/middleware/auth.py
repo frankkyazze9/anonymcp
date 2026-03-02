@@ -15,15 +15,17 @@ Keys without a role tag default to "admin" for backward compatibility.
 from __future__ import annotations
 
 import hmac
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import structlog
 from starlette.middleware.base import BaseHTTPMiddleware
-from starlette.responses import JSONResponse
+from starlette.responses import JSONResponse, Response
 
 from anonymcp.middleware.roles import caller_role
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
     from starlette.requests import Request
     from starlette.types import ASGIApp
 
@@ -37,7 +39,11 @@ class APIKeyAuthMiddleware(BaseHTTPMiddleware):
         super().__init__(app)
         self._key_roles = key_roles  # {api_key: role}
 
-    async def dispatch(self, request: Request, call_next):  # noqa: ANN001
+    async def dispatch(
+        self,
+        request: Request,
+        call_next: Callable[..., Any],
+    ) -> Response:
         auth_header = request.headers.get("authorization", "")
 
         if not auth_header.startswith("Bearer "):
@@ -68,7 +74,8 @@ class APIKeyAuthMiddleware(BaseHTTPMiddleware):
         # Set the caller's role for downstream tool authorization
         reset_token = caller_role.set(role)
         try:
-            return await call_next(request)
+            response: Response = await call_next(request)
+            return response
         finally:
             caller_role.reset(reset_token)
 
