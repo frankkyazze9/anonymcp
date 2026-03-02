@@ -28,6 +28,16 @@ class AnonyMCPSettings(BaseSettings):
     transport: Literal["stdio", "streamable-http"] = "stdio"
     log_level: str = "INFO"
 
+    # TLS (HTTP transport only)
+    tls_certfile: str | None = None
+    tls_keyfile: str | None = None
+    tls_keyfile_password: str | None = None
+    tls_ca_certs: str | None = None  # for mTLS client cert verification
+
+    # Authentication (HTTP transport only)
+    api_keys: str | None = None  # comma-separated list of valid API keys
+    require_auth: bool = False  # if True, reject requests without valid API key
+
     # Policy
     policy_path: Path = Path("./policies/default.yaml")
     score_threshold: float = 0.4

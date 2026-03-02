@@ -485,6 +485,72 @@ def governance_review() -> str:
 # ---------------------------------------------------------------------------
 
 
+def _run_http() -> None:
+    """Run the HTTP transport with optional TLS and API key auth."""
+    import asyncio
+
+    import uvicorn
+
+    starlette_app = mcp.streamable_http_app()
+
+    # Wire up API key auth if configured
+    if settings.require_auth:
+        if not settings.api_keys:
+            logger.error(
+                "auth_enabled_but_no_keys",
+                hint="Set ANONYMCP_API_KEYS to a comma-separated list of keys",
+            )
+            sys.exit(1)
+
+        from anonymcp.middleware.auth import APIKeyAuthMiddleware  # noqa: E402
+
+        valid_keys = {k.strip() for k in settings.api_keys.split(",") if k.strip()}
+        starlette_app.add_middleware(APIKeyAuthMiddleware, valid_keys=valid_keys)
+        logger.info("auth_enabled", num_keys=len(valid_keys))
+
+    # Build uvicorn config with TLS if certs are provided
+    uvicorn_kwargs: dict[str, Any] = {
+        "host": settings.host,
+        "port": settings.port,
+        "log_level": settings.log_level.lower(),
+    }
+
+    if settings.tls_certfile and settings.tls_keyfile:
+        uvicorn_kwargs["ssl_certfile"] = settings.tls_certfile
+        uvicorn_kwargs["ssl_keyfile"] = settings.tls_keyfile
+        if settings.tls_keyfile_password:
+            uvicorn_kwargs["ssl_keyfile_password"] = settings.tls_keyfile_password
+        if settings.tls_ca_certs:
+            # Enables mutual TLS (client cert verification)
+            import ssl
+
+            uvicorn_kwargs["ssl_ca_certs"] = settings.tls_ca_certs
+            uvicorn_kwargs["ssl_cert_reqs"] = ssl.CERT_REQUIRED
+        protocol = "https"
+        logger.info(
+            "tls_enabled",
+            certfile=settings.tls_certfile,
+            mtls=bool(settings.tls_ca_certs),
+        )
+    else:
+        protocol = "http"
+        if settings.host != "127.0.0.1" and settings.host != "localhost":
+            logger.warning(
+                "no_tls_on_network_interface",
+                host=settings.host,
+                hint="Set ANONYMCP_TLS_CERTFILE and ANONYMCP_TLS_KEYFILE for production",
+            )
+
+    logger.info(
+        "http_listening",
+        url=f"{protocol}://{settings.host}:{settings.port}/mcp",
+    )
+
+    config = uvicorn.Config(starlette_app, **uvicorn_kwargs)
+    server = uvicorn.Server(config)
+    asyncio.run(server.serve())
+
+
 def main() -> None:
     """Run the AnonyMCP server."""
     _init_components()
@@ -497,11 +563,7 @@ def main() -> None:
     )
 
     if settings.transport == "streamable-http":
-        mcp.run(
-            transport="streamable-http",
-            host=settings.host,
-            port=settings.port,
-        )
+        _run_http()
     else:
         mcp.run(transport="stdio")
 

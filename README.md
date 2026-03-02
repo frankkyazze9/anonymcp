@@ -143,14 +143,19 @@ Let's be honest: production AI governance doesn't run on Claude Desktop. Here's 
 Run AnonyMCP as a standalone HTTP service. Your AI orchestration layer (LangChain, LlamaIndex, custom pipelines, whatever) calls it over the network like any other microservice.
 
 ```bash
-# Direct
-ANONYMCP_TRANSPORT=streamable-http ANONYMCP_HOST=0.0.0.0 ANONYMCP_PORT=8000 uv run anonymcp
+# With TLS and auth (production)
+ANONYMCP_TRANSPORT=streamable-http \
+ANONYMCP_TLS_CERTFILE=/etc/ssl/certs/anonymcp.pem \
+ANONYMCP_TLS_KEYFILE=/etc/ssl/private/anonymcp-key.pem \
+ANONYMCP_REQUIRE_AUTH=true \
+ANONYMCP_API_KEYS=your-secret-key \
+uv run anonymcp
 
 # Docker
 cd docker && docker compose up --build
 ```
 
-Put it behind your API gateway or service mesh. It's a stateless HTTP server, so horizontal scaling is straightforward. Point your MCP client SDK at `http://anonymcp-service:8000/mcp` and you're done.
+It's a stateless HTTP server, so horizontal scaling is straightforward. Put it behind your load balancer or service mesh and point your MCP client SDK at `https://anonymcp-service:8100/mcp`.
 
 ### Kubernetes / Helm
 
@@ -229,6 +234,58 @@ print('CLEAN')
 
 ---
 
+## Security
+
+A governance tool that sends PII in plaintext over the network is worse than useless. It's a liability. AnonyMCP ships with TLS and API key authentication built in so the defaults are secure and any gaps are the implementor's config problem, not ours.
+
+### TLS (Transport Encryption)
+
+Provide cert and key paths. AnonyMCP configures HTTPS automatically via uvicorn:
+
+```bash
+ANONYMCP_TRANSPORT=streamable-http \
+ANONYMCP_TLS_CERTFILE=/etc/ssl/certs/anonymcp.pem \
+ANONYMCP_TLS_KEYFILE=/etc/ssl/private/anonymcp-key.pem \
+uv run anonymcp
+```
+
+If you bind to a network interface (`0.0.0.0`) without TLS configured, AnonyMCP logs a warning. Localhost-only deployments (`127.0.0.1`) skip the warning since the traffic never leaves the box.
+
+### Mutual TLS (mTLS)
+
+For zero-trust environments where you need to verify the *client* too:
+
+```bash
+ANONYMCP_TLS_CA_CERTS=/etc/ssl/certs/client-ca.pem
+```
+
+This enables client certificate verification. Only clients presenting a cert signed by your CA can connect.
+
+### API Key Authentication
+
+TLS encrypts the wire. Auth controls who gets in:
+
+```bash
+ANONYMCP_REQUIRE_AUTH=true
+ANONYMCP_API_KEYS=prod-key-abc123,staging-key-def456
+```
+
+Every HTTP request must include `Authorization: Bearer <key>`. Keys are compared in constant time to prevent timing attacks. Missing or invalid keys get a 401/403 and a warning in the audit log.
+
+### Security Model Summary
+
+| Layer | What It Does | Config |
+|---|---|---|
+| TLS | Encrypts data in transit | `ANONYMCP_TLS_CERTFILE`, `ANONYMCP_TLS_KEYFILE` |
+| mTLS | Verifies client identity via certs | `ANONYMCP_TLS_CA_CERTS` |
+| API Keys | Application-level access control | `ANONYMCP_REQUIRE_AUTH`, `ANONYMCP_API_KEYS` |
+| Policy Engine | Controls what gets redacted and how | `ANONYMCP_POLICY_PATH` |
+| Audit Log | Records every governance action | `ANONYMCP_AUDIT_ENABLED` |
+
+stdio transport (Claude Desktop, local dev) does not need any of this because traffic never hits the network.
+
+---
+
 ## MCP Tools
 
 | Tool | Description |
@@ -279,6 +336,11 @@ anonymization:
 | `ANONYMCP_AUDIT_ENABLED` | `true` | Enable audit logging |
 | `ANONYMCP_HOST` | `0.0.0.0` | HTTP server bind address |
 | `ANONYMCP_PORT` | `8000` | HTTP server port |
+| `ANONYMCP_TLS_CERTFILE` | none | Path to TLS certificate (enables HTTPS) |
+| `ANONYMCP_TLS_KEYFILE` | none | Path to TLS private key |
+| `ANONYMCP_TLS_CA_CERTS` | none | CA certs for mutual TLS (client verification) |
+| `ANONYMCP_REQUIRE_AUTH` | `false` | Require API key for HTTP requests |
+| `ANONYMCP_API_KEYS` | none | Comma-separated valid API keys |
 
 ---
 
