@@ -91,6 +91,40 @@ def _init_components() -> None:
 
 
 # ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
+
+
+def _check_text_length(text: str) -> str | None:
+    """Return an error message if text exceeds the configured limit."""
+    if settings.max_text_length > 0 and len(text) > settings.max_text_length:
+        return (
+            f"Input text too large ({len(text)} chars). "
+            f"Maximum is {settings.max_text_length} chars. "
+            f"Set ANONYMCP_MAX_TEXT_LENGTH to adjust."
+        )
+    return None
+
+
+def _redact_results(results: list[dict]) -> list[dict]:
+    """Strip raw PII values from detection results before returning to callers.
+
+    The 'text' field contains the actual PII (SSNs, emails, etc).
+    Returning that in API responses defeats the purpose of a governance tool.
+    Callers get entity type, position, and score -- enough to act on.
+    """
+    return [
+        {
+            "entity_type": r["entity_type"],
+            "start": r["start"],
+            "end": r["end"],
+            "score": r["score"],
+        }
+        for r in results
+    ]
+
+
+# ---------------------------------------------------------------------------
 # MCP Tools
 # ---------------------------------------------------------------------------
 
@@ -117,6 +151,9 @@ async def analyze_text(
     Returns:
         Dictionary with entities_found count, results list, and analysis_id.
     """
+    if err := _check_text_length(text):
+        return {"error": err}
+
     start = time.monotonic()
 
     result = detector.detect(
@@ -144,7 +181,7 @@ async def analyze_text(
 
     return {
         "entities_found": result.entities_found,
-        "results": result.results,
+        "results": _redact_results(result.results),
         "analysis_id": record.audit_id,
     }
 
@@ -172,6 +209,9 @@ async def anonymize_text(
     Returns:
         Dictionary with anonymized_text, entity count, and operators applied.
     """
+    if err := _check_text_length(text):
+        return {"error": err}
+
     start = time.monotonic()
 
     detection = detector.detect(
@@ -236,6 +276,9 @@ async def classify_sensitivity(
     Returns:
         Dictionary with classification level, confidence, reason, and entity summary.
     """
+    if err := _check_text_length(text):
+        return {"error": err}
+
     start = time.monotonic()
 
     detection = detector.detect(
@@ -289,6 +332,9 @@ async def scan_and_protect(
     Returns:
         Dictionary with protected_text, classification, and entity counts.
     """
+    if err := _check_text_length(text):
+        return {"error": err}
+
     start = time.monotonic()
 
     # Detect
@@ -426,14 +472,37 @@ async def manage_policy(
         if not policy_config:
             return {"error": "policy_config is required for 'set' action"}
 
+        old_name = policy_engine.policy.name
+        old_version = policy_engine.policy.version
         new_policy = GovernancePolicy(**policy_config)
         policy_engine._policy = new_policy
         anonymizer.policy = new_policy
-        logger.info("policy_updated", name=new_policy.name)
+
+        # Audit the policy change - this is a security-relevant event
+        record = AuditRecord(
+            action="policy_change",
+            classification="RESTRICTED",
+            entities_found=0,
+            entity_types=[],
+            policy_name=new_policy.name,
+            policy_version=new_policy.version,
+            metadata={
+                "previous_policy": old_name,
+                "previous_version": old_version,
+            },
+        )
+        await audit_logger.log(record)
+
+        logger.warning(
+            "policy_updated",
+            old=f"{old_name}@{old_version}",
+            new=f"{new_policy.name}@{new_policy.version}",
+        )
         return {
             "status": "updated",
             "name": new_policy.name,
             "version": new_policy.version,
+            "audit_id": record.audit_id,
         }
 
     return {"error": f"Unknown action: {action}. Use 'get', 'list', or 'set'."}

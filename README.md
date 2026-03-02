@@ -284,6 +284,8 @@ Every HTTP request must include `Authorization: Bearer <key>`. Keys are compared
 
 stdio transport (Claude Desktop, local dev) does not need any of this because traffic never hits the network.
 
+For the full threat model, hardening guide, and known limitations, see [SECURITY.md](SECURITY.md).
+
 ---
 
 ## MCP Tools

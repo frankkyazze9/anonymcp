@@ -38,6 +38,9 @@ class AnonyMCPSettings(BaseSettings):
     api_keys: str | None = None  # comma-separated list of valid API keys
     require_auth: bool = False  # if True, reject requests without valid API key
 
+    # Safety limits
+    max_text_length: int = 100_000  # max input text size in characters (0 = unlimited)
+
     # Policy
     policy_path: Path = Path("./policies/default.yaml")
     score_threshold: float = 0.4

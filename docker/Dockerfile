@@ -18,13 +18,18 @@ RUN pip install --no-cache-dir -e ".[all]"
 # Download spaCy model
 RUN python -m spacy download en_core_web_lg
 
-# Create audit directory
-RUN mkdir -p /app/audit
+# Create audit directory and non-root user
+RUN mkdir -p /app/audit && \
+    groupadd -r anonymcp && \
+    useradd -r -g anonymcp -d /app -s /sbin/nologin anonymcp && \
+    chown -R anonymcp:anonymcp /app
 
 EXPOSE 8100
 
 ENV ANONYMCP_TRANSPORT=streamable-http
 ENV ANONYMCP_HOST=0.0.0.0
 ENV ANONYMCP_PORT=8100
+
+USER anonymcp
 
 CMD ["anonymcp"]
