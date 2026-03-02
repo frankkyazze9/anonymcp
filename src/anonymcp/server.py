@@ -15,7 +15,7 @@ from typing import Any
 # ALL logging must go to stderr to avoid corrupting the protocol.
 logging.basicConfig(stream=sys.stderr, level=logging.WARNING)
 
-import structlog
+import structlog  # noqa: E402
 
 # Configure structlog to write to stderr, not stdout
 structlog.configure(
@@ -27,17 +27,16 @@ structlog.configure(
     logger_factory=structlog.PrintLoggerFactory(file=sys.stderr),
 )
 
-from mcp.server.fastmcp import FastMCP
+from mcp.server.fastmcp import FastMCP  # noqa: E402
 
-from anonymcp import __version__
-from anonymcp.audit.events import AuditRecord
-from anonymcp.audit.logger import AuditLogger
-from anonymcp.config.settings import AnonyMCPSettings
-from anonymcp.engine.anonymizer import TextAnonymizer
-from anonymcp.engine.classifier import TextClassifier
-from anonymcp.engine.detector import TextDetector
-from anonymcp.policy.engine import PolicyEngine
-from anonymcp.policy.models import GovernancePolicy
+from anonymcp.audit.events import AuditRecord  # noqa: E402
+from anonymcp.audit.logger import AuditLogger  # noqa: E402
+from anonymcp.config.settings import AnonyMCPSettings  # noqa: E402
+from anonymcp.engine.anonymizer import TextAnonymizer  # noqa: E402
+from anonymcp.engine.classifier import TextClassifier  # noqa: E402
+from anonymcp.engine.detector import TextDetector  # noqa: E402
+from anonymcp.policy.engine import PolicyEngine  # noqa: E402
+from anonymcp.policy.models import GovernancePolicy  # noqa: E402
 
 logger = structlog.get_logger(__name__)
 

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from pathlib import Path
+from typing import TYPE_CHECKING
 
 import structlog
 
@@ -12,6 +12,9 @@ from anonymcp.policy.models import (
     GovernancePolicy,
     SensitivityLevel,
 )
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 logger = structlog.get_logger(__name__)
 

@@ -2,13 +2,17 @@
 
 from __future__ import annotations
 
-from anonymcp.engine.detector import TextDetector
+from typing import TYPE_CHECKING
+
 from tests.conftest import (
     SAMPLE_TEXT_CLEAN,
     SAMPLE_TEXT_EMAIL,
     SAMPLE_TEXT_MIXED,
     SAMPLE_TEXT_SSN,
 )
+
+if TYPE_CHECKING:
+    from anonymcp.engine.detector import TextDetector
 
 
 class TestTextDetector:

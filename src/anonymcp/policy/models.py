@@ -2,13 +2,13 @@
 
 from __future__ import annotations
 
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 from pydantic import BaseModel, Field
 
 
-class SensitivityLevel(str, Enum):
+class SensitivityLevel(StrEnum):
     """Sensitivity level for PII entity types."""
 
     HIGH = "HIGH"
@@ -16,7 +16,7 @@ class SensitivityLevel(str, Enum):
     LOW = "LOW"
 
 
-class ClassificationLevel(str, Enum):
+class ClassificationLevel(StrEnum):
     """Data classification levels, ordered by sensitivity."""
 
     PUBLIC = "PUBLIC"

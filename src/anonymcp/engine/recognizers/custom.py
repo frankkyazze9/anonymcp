@@ -9,7 +9,7 @@ from __future__ import annotations
 from typing import Any
 
 import structlog
-from presidio_analyzer import AnalyzerEngine, PatternRecognizer, Pattern
+from presidio_analyzer import AnalyzerEngine, Pattern, PatternRecognizer
 
 logger = structlog.get_logger(__name__)
 

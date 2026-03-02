@@ -3,14 +3,16 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import structlog
-from presidio_analyzer import RecognizerResult
 from presidio_anonymizer import AnonymizerEngine
 from presidio_anonymizer.entities import OperatorConfig
 
-from anonymcp.policy.models import GovernancePolicy, OperatorSpec
+from anonymcp.policy.models import GovernancePolicy
+
+if TYPE_CHECKING:
+    from presidio_analyzer import RecognizerResult
 
 logger = structlog.get_logger(__name__)
 

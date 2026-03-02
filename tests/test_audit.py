@@ -2,10 +2,14 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import pytest
 
 from anonymcp.audit.events import AuditRecord
-from anonymcp.audit.logger import AuditLogger
+
+if TYPE_CHECKING:
+    from anonymcp.audit.logger import AuditLogger
 
 
 class TestAuditRecord:
@@ -54,10 +58,20 @@ class TestAuditLogger:
     @pytest.mark.asyncio
     async def test_query_filter_by_action(self, audit_logger: AuditLogger) -> None:
         await audit_logger.log(
-            AuditRecord(action="analyze", classification="PUBLIC", entities_found=0, entity_types=[])
+            AuditRecord(
+                action="analyze",
+                classification="PUBLIC",
+                entities_found=0,
+                entity_types=[],
+            )
         )
         await audit_logger.log(
-            AuditRecord(action="anonymize", classification="CONFIDENTIAL", entities_found=1, entity_types=["EMAIL_ADDRESS"])
+            AuditRecord(
+                action="anonymize",
+                classification="CONFIDENTIAL",
+                entities_found=1,
+                entity_types=["EMAIL_ADDRESS"],
+            )
         )
 
         results = audit_logger.query(action_type="anonymize")
@@ -67,10 +81,20 @@ class TestAuditLogger:
     @pytest.mark.asyncio
     async def test_query_filter_by_classification(self, audit_logger: AuditLogger) -> None:
         await audit_logger.log(
-            AuditRecord(action="analyze", classification="PUBLIC", entities_found=0, entity_types=[])
+            AuditRecord(
+                action="analyze",
+                classification="PUBLIC",
+                entities_found=0,
+                entity_types=[],
+            )
         )
         await audit_logger.log(
-            AuditRecord(action="analyze", classification="RESTRICTED", entities_found=1, entity_types=["US_SSN"])
+            AuditRecord(
+                action="analyze",
+                classification="RESTRICTED",
+                entities_found=1,
+                entity_types=["US_SSN"],
+            )
         )
 
         results = audit_logger.query(classification="RESTRICTED")

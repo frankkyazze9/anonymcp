@@ -3,11 +3,14 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
 
 import structlog
 
-from anonymcp.policy.engine import PolicyEngine
-from anonymcp.policy.models import ClassificationLevel, SensitivityLevel
+from anonymcp.policy.models import ClassificationLevel
+
+if TYPE_CHECKING:
+    from anonymcp.policy.engine import PolicyEngine
 
 logger = structlog.get_logger(__name__)
 
@@ -108,6 +111,9 @@ class TextClassifier:
             if entities:
                 count = len(entities)
                 names = ", ".join(entities)
-                parts.append(f"{count} {level}-sensitivity entit{'y' if count == 1 else 'ies'} ({names})")
+                suffix = "y" if count == 1 else "ies"
+                parts.append(
+                    f"{count} {level}-sensitivity entit{suffix} ({names})"
+                )
 
         return f"Contains {'; '.join(parts)}"

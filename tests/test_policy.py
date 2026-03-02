@@ -2,13 +2,16 @@
 
 from __future__ import annotations
 
-from anonymcp.policy.engine import PolicyEngine
+from typing import TYPE_CHECKING
+
 from anonymcp.policy.models import (
     ClassificationLevel,
     GovernancePolicy,
-    OperatorSpec,
     SensitivityLevel,
 )
+
+if TYPE_CHECKING:
+    from anonymcp.policy.engine import PolicyEngine
 
 
 class TestGovernancePolicy:

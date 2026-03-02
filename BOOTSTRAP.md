@@ -160,3 +160,31 @@ When starting a new conversation, paste this file and say something like:
 - Scaffolded full project (34 files, 2231 lines)
 - Created GitHub repo: https://github.com/frankkyazze9/anonymcp
 - Pushed initial commit to main
+
+### Session 2 — March 2, 2026
+- Set up Python 3.13 venv (3.14 broke spaCy/pydantic)
+- Installed spaCy `en_core_web_lg` model via uv
+- Configured Claude Desktop MCP server entry
+- Created Rich-powered CLI demo script (`demo/demo_cli.py`)
+- Created VHS tape file for GIF recording (`demo/demo.tape`)
+- Fixed mask operator bug (missing `from_end` param in models.py + default.yaml)
+- Created demo plan document (`demo/DEMO_PLAN.md`)
+
+### Session 3 — March 2, 2026
+- Fixed FastMCP `version` kwarg error (removed unsupported param)
+- Fixed stdout pollution breaking MCP stdio transport (redirected all logging to stderr)
+- Successfully connected AnonyMCP to Claude Desktop — all 6 tools visible
+- Recorded CLI demo GIF with VHS (3.4MB at `demo/anonymcp-demo.gif`)
+- Added demo GIF to README, pushed to GitHub
+
+### Session 4 — March 2, 2026
+- Ran full test suite: 36/36 tests pass
+- Ran ruff lint: fixed all 45 errors (auto-fix + manual)
+  - Added `# noqa: E402` to intentional imports-after-config in server.py
+  - Wrapped long lines in classifier.py and test_audit.py
+- Rewrote README for public launch:
+  - Added condensed manifesto ("Why This Exists")
+  - Added Mermaid architecture diagram
+  - Added persona sections (Legal/Compliance, CISO/Security, Privacy Engineers/Devs)
+  - Added badges, polished formatting, expanded roadmap
+- Updated BOOTSTRAP.md with full session log

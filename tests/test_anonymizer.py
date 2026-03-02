@@ -2,10 +2,13 @@
 
 from __future__ import annotations
 
-from anonymcp.engine.anonymizer import TextAnonymizer
-from anonymcp.engine.detector import TextDetector
-from anonymcp.policy.models import GovernancePolicy
+from typing import TYPE_CHECKING
+
 from tests.conftest import SAMPLE_TEXT_EMAIL, SAMPLE_TEXT_MIXED
+
+if TYPE_CHECKING:
+    from anonymcp.engine.anonymizer import TextAnonymizer
+    from anonymcp.engine.detector import TextDetector
 
 
 class TestTextAnonymizer:

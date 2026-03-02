@@ -2,8 +2,12 @@
 
 from __future__ import annotations
 
-from anonymcp.engine.classifier import TextClassifier
+from typing import TYPE_CHECKING
+
 from anonymcp.policy.models import ClassificationLevel
+
+if TYPE_CHECKING:
+    from anonymcp.engine.classifier import TextClassifier
 
 
 class TestTextClassifier:
