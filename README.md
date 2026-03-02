@@ -45,61 +45,13 @@ The goal is simple: make responsible data handling the path of least resistance.
 
 ## Architecture
 
-```mermaid
-flowchart TB
-    subgraph Clients
-        direction LR
-        C1[Claude Desktop]
-        C2[Custom Agents]
-        C3[RAG Pipelines]
-    end
-
-    Clients -->|stdio / HTTP| MCP[FastMCP Server]
-
-    MCP --> Tools
-
-    subgraph Tools
-        direction LR
-        T1[analyze_text]
-        T2[anonymize_text]
-        T3[classify_sensitivity]
-        T4[scan_and_protect]
-        T5[get_audit_log]
-        T6[manage_policy]
-    end
-
-    Tools --> Engine
-
-    subgraph Engine
-        direction LR
-        DET["Detector (Presidio)"]
-        ANON["Anonymizer (Presidio)"]
-        CLS[Classifier]
-        PE[Policy Engine]
-    end
-
-    Engine --> Audit
-    PE --> Policy
-
-    subgraph Policy
-        direction LR
-        YAML[YAML Config]
-        MODELS[Sensitivity Models]
-        ALERTS[Alert Rules]
-    end
-
-    subgraph Audit
-        direction LR
-        AL[Audit Logger]
-        FE["File (JSONL)"]
-        SE[Stdout]
-        WE[Webhook]
-    end
-
-    AL --> FE
-    AL --> SE
-    AL --> WE
-```
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/architecture-dark.svg">
+    <source media="(prefers-color-scheme: light)" srcset="docs/architecture.svg">
+    <img alt="AnonyMCP Architecture" src="docs/architecture.svg" width="700">
+  </picture>
+</p>
 
 ---
 
