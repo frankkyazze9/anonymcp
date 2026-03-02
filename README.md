@@ -40,6 +40,7 @@ The goal is simple: make responsible data handling the path of least resistance.
 - **Audit** - Structured logging of every governance action with exporters (JSONL file, stdout, webhook)
 - **Policy-driven** - YAML-based governance policies with per-entity operator rules and alerting thresholds
 - **MCP-native** - Works with any MCP client: Claude Desktop, custom agents, RAG pipelines, or your own tooling
+
 ---
 
 ## Architecture
@@ -66,15 +67,15 @@ flowchart LR
         end
 
         subgraph Engine
-            DET[Detector - Presidio Analyzer]
-            ANON[Anonymizer - Presidio Anonymizer]
+            DET["Detector (Presidio Analyzer)"]
+            ANON["Anonymizer (Presidio Anonymizer)"]
             CLS[Classifier]
             PE[Policy Engine]
         end
 
         subgraph Audit
             AL[Audit Logger]
-            FE[File Exporter - JSONL]
+            FE["File Exporter (JSONL)"]
             SE[Stdout Exporter]
             WE[Webhook Exporter]
         end
@@ -95,6 +96,7 @@ flowchart LR
     AL --> SE
     AL --> WE
 ```
+
 ---
 
 ## Quick Start (Local / Dev)
@@ -129,6 +131,7 @@ Add to your `claude_desktop_config.json`:
 ```
 
 Restart Claude Desktop. You'll see 6 new tools.
+
 ---
 
 ## Enterprise Deployment
@@ -223,6 +226,7 @@ if result.entities_found > 0:
 print('CLEAN')
 "
 ```
+
 ---
 
 ## MCP Tools
@@ -262,6 +266,7 @@ anonymization:
       chars_to_mask: 4
       from_end: false
 ```
+
 ---
 
 ## Configuration
@@ -290,6 +295,7 @@ AnonyMCP is a security control that sits in the data path and enforces sensitivi
 ### For Privacy Engineers and Developers
 
 Drop-in MCP server you can wire into any AI workflow in minutes. Wraps Microsoft Presidio (the industry-standard NLP-based PII engine) behind a clean tool interface with six composable operations. Use `scan_and_protect` for a one-call pipeline, or chain `analyze_text` then `classify_sensitivity` then `anonymize_text` for granular control. Custom recognizers, per-entity operator overrides, and YAML policy files give you full flexibility without touching core code.
+
 ---
 
 ## Development
