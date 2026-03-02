@@ -46,52 +46,56 @@ The goal is simple: make responsible data handling the path of least resistance.
 ## Architecture
 
 ```mermaid
-flowchart LR
+flowchart TB
     subgraph Clients
+        direction LR
         C1[Claude Desktop]
         C2[Custom Agents]
         C3[RAG Pipelines]
     end
 
-    subgraph AnonyMCP
-        direction TB
-        MCP[FastMCP Server]
+    Clients -->|stdio / HTTP| MCP[FastMCP Server]
 
-        subgraph Tools
-            T1[analyze_text]
-            T2[anonymize_text]
-            T3[classify_sensitivity]
-            T4[scan_and_protect]
-            T5[get_audit_log]
-            T6[manage_policy]
-        end
+    MCP --> Tools
 
-        subgraph Engine
-            DET["Detector (Presidio Analyzer)"]
-            ANON["Anonymizer (Presidio Anonymizer)"]
-            CLS[Classifier]
-            PE[Policy Engine]
-        end
-
-        subgraph Audit
-            AL[Audit Logger]
-            FE["File Exporter (JSONL)"]
-            SE[Stdout Exporter]
-            WE[Webhook Exporter]
-        end
-
-        subgraph Policy
-            YAML[YAML Config]
-            MODELS[Sensitivity Models]
-            ALERTS[Alert Rules]
-        end
+    subgraph Tools
+        direction LR
+        T1[analyze_text]
+        T2[anonymize_text]
+        T3[classify_sensitivity]
+        T4[scan_and_protect]
+        T5[get_audit_log]
+        T6[manage_policy]
     end
 
-    Clients -->|stdio / HTTP| MCP
-    MCP --> Tools
     Tools --> Engine
+
+    subgraph Engine
+        direction LR
+        DET["Detector (Presidio)"]
+        ANON["Anonymizer (Presidio)"]
+        CLS[Classifier]
+        PE[Policy Engine]
+    end
+
     Engine --> Audit
     PE --> Policy
+
+    subgraph Policy
+        direction LR
+        YAML[YAML Config]
+        MODELS[Sensitivity Models]
+        ALERTS[Alert Rules]
+    end
+
+    subgraph Audit
+        direction LR
+        AL[Audit Logger]
+        FE["File (JSONL)"]
+        SE[Stdout]
+        WE[Webhook]
+    end
+
     AL --> FE
     AL --> SE
     AL --> WE
