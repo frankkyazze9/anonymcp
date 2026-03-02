@@ -30,6 +30,24 @@ This is not just a PII scrubber. It's a policy-driven governance engine with con
 
 The goal is simple: make responsible data handling the path of least resistance.
 
+### Why an MCP layer?
+
+PII libraries exist. Presidio itself is solid. But a library sitting in a repo doesn't help when your AI stack is five services, three teams, and a RAG pipeline that nobody fully understands. MCP gives you a single governance checkpoint that any AI workflow can call without custom integration. Claude Desktop, LangChain agents, internal tools, whatever speaks MCP can use it. You don't modify your existing code. You add a tool call.
+
+That composability is the point. Instead of every team writing their own PII handling (or more likely, not writing it), governance becomes a shared service with one policy file, one audit trail, and one place to answer the question "what happened to that data?"
+
+### Use Cases
+
+**Pre-LLM screening.** Customer sends a support ticket containing their SSN and credit card number. Before the LLM sees it, AnonyMCP detects and redacts the PII. The model gets clean text, your compliance team gets an audit record.
+
+**Post-LLM filtering.** Your model generates a summary that accidentally includes a patient name from its context window. AnonyMCP catches it before the response reaches the end user.
+
+**RAG pipeline governance.** Retrieved documents contain PII you didn't know was there. Classify each chunk by sensitivity level, redact anything CONFIDENTIAL or above, and log what was found. Your retrieval pipeline stays clean without manual review.
+
+**Prompt template scanning.** Run AnonyMCP as a CI/CD gate to scan prompt templates before deployment. If someone hardcoded test data with real PII into a prompt, the pipeline catches it before it ships.
+
+**Regulatory evidence.** Every detection, classification, and anonymization action gets logged with timestamps, entity types, confidence scores, and policy versions. When the auditor asks "how do you handle PII in your AI systems?", you point them at the audit log instead of a slide deck.
+
 ---
 
 ## Features
