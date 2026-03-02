@@ -68,7 +68,33 @@ with client IP and request path.
 If `REQUIRE_AUTH=true` but no keys are configured, the server refuses
 to start. This is intentional -- failing closed is better than
 running open.
-### 3. PII Leakage Prevention in API Responses
+
+### 3. Role-Based Access Control (RBAC)
+
+Each API key is assigned a role that limits which tools it can call:
+
+```bash
+ANONYMCP_API_KEYS=pipeline-key:read,admin-key:admin
+```
+
+| Role | Allowed Tools |
+|---|---|
+| `read` | analyze_text, anonymize_text, classify_sensitivity, scan_and_protect |
+| `admin` | All of the above plus get_audit_log and manage_policy |
+
+The role is resolved from the API key during authentication and
+stored in a Python `contextvars.ContextVar`. Each tool checks
+the caller's role before executing. Denied calls return an error
+response and log a warning.
+
+Keys without a role suffix default to `admin` for backward
+compatibility with the original comma-separated format.
+
+For stdio transport (Claude Desktop, local dev), the contextvar
+default is `admin` since the local user should have full access.
+The role system only gates HTTP-authenticated callers.
+
+### 5. PII Leakage Prevention in API Responses
 
 The `analyze_text` tool returns entity type, position (start/end
 offsets), and confidence score. It does **not** return the matched
@@ -80,7 +106,7 @@ The raw matched text is available internally to the anonymizer
 engine (it needs it to do replacements), but it never crosses the
 MCP tool boundary.
 
-### 4. Input Size Limits
+### 6. Input Size Limits
 
 **Default:** 100,000 characters.
 
@@ -94,7 +120,7 @@ can consume all available RAM and stall the server. The default of
 100K characters is generous for typical document processing. Adjust
 based on your workload and available memory.
 
-### 5. Policy Change Auditing
+### 7. Policy Change Auditing
 
 Every call to `manage_policy` with `action="set"` generates a
 RESTRICTED-level audit record that captures the old and new policy
@@ -111,7 +137,7 @@ doesn't need runtime policy changes, don't expose it. You can
 remove it from the tool list by commenting out the `@mcp.tool()`
 decorator or adding a settings guard.
 
-### 6. Container Security
+### 8. Container Security
 
 The Docker image runs as a non-root user (`anonymcp`). The policy
 volume is mounted read-only by default. Audit logs write to a named
@@ -131,7 +157,7 @@ services:
     cap_drop:
       - ALL
 ```
-### 7. Audit Log Security
+### 9. Audit Log Security
 
 Audit records contain:
 
@@ -157,7 +183,7 @@ audit:
   log_anonymized_text: false
 ```
 
-### 8. Webhook Exporter
+### 10. Webhook Exporter
 
 The webhook exporter uses `httpx` with default TLS verification
 (system CA bundle). Audit records sent to webhooks follow the same
@@ -178,18 +204,13 @@ These are things we know about and have not yet addressed:
    Use your API gateway or service mesh for rate limiting until
    we add native support.
 
-2. **No per-key authorization scoping.** All valid API keys have
-   equal access to all tools. There's no way to give one key
-   read-only access (analyze/classify) while restricting another
-   from policy changes. This is on the roadmap.
+2. **Audit queries are scoped by role, not by caller identity.**
+   Any client with the `admin` role can query the full audit
+   history. In multi-tenant deployments, this means one admin
+   client can see metadata about what other clients processed.
+   Per-caller audit scoping is on the roadmap.
 
-3. **`get_audit_log` has no access control.** Any authenticated
-   MCP client can query the full audit history. In multi-tenant
-   deployments, this means one client can see metadata about
-   what other clients processed. Scope audit queries to caller
-   identity if this matters for your deployment.
-
-4. **In-memory audit buffer is not persisted.** If the process
+3. **In-memory audit buffer is not persisted.** If the process
    crashes, buffered records that haven't been flushed to a file
    or webhook exporter are lost. Use the file exporter for
    durable audit storage.

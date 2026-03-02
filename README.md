@@ -267,10 +267,21 @@ TLS encrypts the wire. Auth controls who gets in:
 
 ```bash
 ANONYMCP_REQUIRE_AUTH=true
-ANONYMCP_API_KEYS=prod-key-abc123,staging-key-def456
+ANONYMCP_API_KEYS=pipeline-key:read,admin-key:admin
 ```
 
 Every HTTP request must include `Authorization: Bearer <key>`. Keys are compared in constant time to prevent timing attacks. Missing or invalid keys get a 401/403 and a warning in the audit log.
+
+### Role-Based Access Control
+
+Each API key is assigned a role that controls which tools it can call:
+
+| Role | Tools | Use Case |
+|---|---|---|
+| `read` | analyze_text, anonymize_text, classify_sensitivity, scan_and_protect | Pipeline agents, application integrations |
+| `admin` | All tools including get_audit_log and manage_policy | Security team, CI/CD, ops tooling |
+
+Keys without a role suffix (e.g. `my-key` instead of `my-key:read`) default to `admin` for backward compatibility. stdio transport (Claude Desktop) always runs as admin since it's a local single-user context.
 
 ### Security Model Summary
 
@@ -279,6 +290,7 @@ Every HTTP request must include `Authorization: Bearer <key>`. Keys are compared
 | TLS | Encrypts data in transit | `ANONYMCP_TLS_CERTFILE`, `ANONYMCP_TLS_KEYFILE` |
 | mTLS | Verifies client identity via certs | `ANONYMCP_TLS_CA_CERTS` |
 | API Keys | Application-level access control | `ANONYMCP_REQUIRE_AUTH`, `ANONYMCP_API_KEYS` |
+| RBAC | Per-key role scoping (read vs admin) | Role tag in `ANONYMCP_API_KEYS` |
 | Policy Engine | Controls what gets redacted and how | `ANONYMCP_POLICY_PATH` |
 | Audit Log | Records every governance action | `ANONYMCP_AUDIT_ENABLED` |
 

@@ -106,6 +106,17 @@ def _check_text_length(text: str) -> str | None:
     return None
 
 
+def _check_authorization(tool_name: str) -> dict[str, Any] | None:
+    """Check role-based access. Returns error dict if denied, None if allowed."""
+    from anonymcp.middleware.roles import check_tool_access
+
+    err = check_tool_access(tool_name)
+    if err:
+        logger.warning("authorization_denied", tool=tool_name)
+        return {"error": err}
+    return None
+
+
 def _redact_results(results: list[dict]) -> list[dict]:
     """Strip raw PII values from detection results before returning to callers.
 
@@ -413,6 +424,9 @@ async def get_audit_log(
     Returns:
         Dictionary with total_records count and records list.
     """
+    if denied := _check_authorization("get_audit_log"):
+        return denied
+
     records = audit_logger.query(
         limit=limit,
         since=since,
@@ -444,6 +458,9 @@ async def manage_policy(
     Returns:
         Dictionary with the requested policy information.
     """
+    if denied := _check_authorization("manage_policy"):
+        return denied
+
     if action == "get":
         p = policy_engine.policy
         return {
@@ -572,10 +589,15 @@ def _run_http() -> None:
             sys.exit(1)
 
         from anonymcp.middleware.auth import APIKeyAuthMiddleware  # noqa: E402
+        from anonymcp.middleware.roles import parse_api_keys  # noqa: E402
 
-        valid_keys = {k.strip() for k in settings.api_keys.split(",") if k.strip()}
-        starlette_app.add_middleware(APIKeyAuthMiddleware, valid_keys=valid_keys)
-        logger.info("auth_enabled", num_keys=len(valid_keys))
+        key_roles = parse_api_keys(settings.api_keys)
+        starlette_app.add_middleware(APIKeyAuthMiddleware, key_roles=key_roles)
+
+        role_counts = {}
+        for role in key_roles.values():
+            role_counts[role] = role_counts.get(role, 0) + 1
+        logger.info("auth_enabled", num_keys=len(key_roles), roles=role_counts)
 
     # Build uvicorn config with TLS if certs are provided
     uvicorn_kwargs: dict[str, Any] = {
