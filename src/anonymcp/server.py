@@ -28,7 +28,7 @@ logger = structlog.get_logger(__name__)
 # Globals initialised at startup
 # ---------------------------------------------------------------------------
 settings = AnonyMCPSettings()
-mcp = FastMCP("AnonyMCP", version=__version__)
+mcp = FastMCP("AnonyMCP")
 
 policy_engine: PolicyEngine
 detector: TextDetector
