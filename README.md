@@ -4,6 +4,10 @@
 
 Think of it as a **privacy firewall you can drop into any AI stack**.
 
+<p align="center">
+  <img src="demo/anonymcp-demo.gif" alt="AnonyMCP Demo" width="800">
+</p>
+
 ---
 
 ## Features
