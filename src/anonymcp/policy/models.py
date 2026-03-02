@@ -125,7 +125,8 @@ class GovernancePolicy(BaseModel):
                 operator="replace", params={"new_value": "[{entity_type}]"}
             ),
             SensitivityLevel.LOW: OperatorSpec(
-                operator="mask", params={"masking_char": "*", "chars_to_mask": 4}
+                operator="mask",
+                params={"masking_char": "*", "chars_to_mask": 4, "from_end": False},
             ),
         }
     )
