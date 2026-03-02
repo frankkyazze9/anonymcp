@@ -1,0 +1,21 @@
+version: "3.9"
+
+services:
+  anonymcp:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    ports:
+      - "8100:8100"
+    environment:
+      - ANONYMCP_TRANSPORT=streamable-http
+      - ANONYMCP_HOST=0.0.0.0
+      - ANONYMCP_PORT=8100
+      - ANONYMCP_AUDIT_ENABLED=true
+      - ANONYMCP_AUDIT_LOG_PATH=/app/audit/anonymcp.jsonl
+    volumes:
+      - ../policies:/app/policies:ro
+      - anonymcp-audit:/app/audit
+
+volumes:
+  anonymcp-audit:

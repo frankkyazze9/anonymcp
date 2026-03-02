@@ -1,0 +1,67 @@
+name: default
+version: "1.0"
+description: "Default data governance policy"
+
+entity_sensitivity:
+  HIGH:
+    - US_SSN
+    - CREDIT_CARD
+    - US_BANK_NUMBER
+    - IBAN_CODE
+    - CRYPTO
+    - US_PASSPORT
+    - UK_NHS
+    - MEDICAL_LICENSE
+  MEDIUM:
+    - EMAIL_ADDRESS
+    - PHONE_NUMBER
+    - PERSON
+    - US_DRIVER_LICENSE
+    - IP_ADDRESS
+    - LOCATION
+  LOW:
+    - URL
+    - DATE_TIME
+    - NRP
+    - TITLE
+
+classification:
+  RESTRICTED:
+    condition: "any HIGH entity"
+  CONFIDENTIAL:
+    condition: "any MEDIUM entity"
+  INTERNAL:
+    condition: "only LOW entities"
+  PUBLIC:
+    condition: "no entities detected"
+
+anonymization:
+  HIGH:
+    operator: redact
+  MEDIUM:
+    operator: replace
+    params:
+      new_value: "[{entity_type}]"
+  LOW:
+    operator: mask
+    params:
+      masking_char: "*"
+      chars_to_mask: 4
+
+operator_overrides: {}
+
+detection:
+  score_threshold: 0.4
+  language: "en"
+
+audit:
+  enabled: true
+  log_original_text: false
+  log_anonymized_text: true
+  exporters:
+    - type: file
+      path: "./audit/anonymcp.jsonl"
+    - type: stdout
+      level: INFO
+
+alerts: []
