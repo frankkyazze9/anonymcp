@@ -19,9 +19,7 @@ class TestParseApiKeys:
         assert result == {"my-key": "admin"}
 
     def test_multiple_keys(self) -> None:
-        result = parse_api_keys(
-            "pipeline-key:read,admin-key:admin,legacy-key"
-        )
+        result = parse_api_keys("pipeline-key:read,admin-key:admin,legacy-key")
         assert result == {
             "pipeline-key": "read",
             "admin-key": "admin",

@@ -112,8 +112,6 @@ class TextClassifier:
                 count = len(entities)
                 names = ", ".join(entities)
                 suffix = "y" if count == 1 else "ies"
-                parts.append(
-                    f"{count} {level}-sensitivity entit{suffix} ({names})"
-                )
+                parts.append(f"{count} {level}-sensitivity entit{suffix} ({names})")
 
         return f"Contains {'; '.join(parts)}"

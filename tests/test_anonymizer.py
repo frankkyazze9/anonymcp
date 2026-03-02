@@ -20,9 +20,7 @@ class TestTextAnonymizer:
         assert "test@example.com" not in result.anonymized_text
         assert result.entities_anonymized >= 1
 
-    def test_anonymize_mixed_pii(
-        self, detector: TextDetector, anonymizer: TextAnonymizer
-    ) -> None:
+    def test_anonymize_mixed_pii(self, detector: TextDetector, anonymizer: TextAnonymizer) -> None:
         detection = detector.detect(SAMPLE_TEXT_MIXED)
         result = anonymizer.anonymize(SAMPLE_TEXT_MIXED, detection.raw_results)
         assert "test@example.com" not in result.anonymized_text

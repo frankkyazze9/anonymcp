@@ -15,16 +15,19 @@ from anonymcp.middleware.roles import caller_role
 # Fixtures: initialize the server components once
 # ---------------------------------------------------------------------------
 
+
 @pytest.fixture(scope="module", autouse=True)
 def _init_server():
     """Initialize AnonyMCP server components for tool-level tests."""
     from anonymcp.server import _init_components
+
     _init_components()
 
 
 # ---------------------------------------------------------------------------
 # 1. PII Redaction in analyze_text response
 # ---------------------------------------------------------------------------
+
 
 class TestPIIRedaction:
     @pytest.mark.asyncio
@@ -61,6 +64,7 @@ class TestPIIRedaction:
 # ---------------------------------------------------------------------------
 # 2. Input size limits
 # ---------------------------------------------------------------------------
+
 
 class TestInputLimits:
     @pytest.mark.asyncio
@@ -129,6 +133,7 @@ class TestInputLimits:
 # 3. RBAC enforcement at tool level
 # ---------------------------------------------------------------------------
 
+
 class TestRBACEnforcement:
     @pytest.mark.asyncio
     async def test_read_role_blocked_from_audit_log(self) -> None:
@@ -195,6 +200,7 @@ class TestRBACEnforcement:
 # ---------------------------------------------------------------------------
 # 4. Policy change audit trail
 # ---------------------------------------------------------------------------
+
 
 class TestPolicyChangeAudit:
     @pytest.mark.asyncio

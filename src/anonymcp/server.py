@@ -254,9 +254,7 @@ async def anonymize_text(
         duration_ms=duration_ms,
         text_length=len(text),
         anonymized_text=(
-            anon_result.anonymized_text
-            if policy_engine.policy.audit.log_anonymized_text
-            else None
+            anon_result.anonymized_text if policy_engine.policy.audit.log_anonymized_text else None
         ),
     )
     await audit_logger.log(record)
@@ -376,9 +374,7 @@ async def scan_and_protect(
         duration_ms=duration_ms,
         text_length=len(text),
         anonymized_text=(
-            anon_result.anonymized_text
-            if policy_engine.policy.audit.log_anonymized_text
-            else None
+            anon_result.anonymized_text if policy_engine.policy.audit.log_anonymized_text else None
         ),
     )
     await audit_logger.log(record)
@@ -467,9 +463,7 @@ async def manage_policy(
             "name": p.name,
             "version": p.version,
             "description": p.description,
-            "entity_sensitivity": {
-                k.value: v for k, v in p.entity_sensitivity.items()
-            },
+            "entity_sensitivity": {k.value: v for k, v in p.entity_sensitivity.items()},
             "detection": {
                 "score_threshold": p.detection.score_threshold,
                 "language": p.detection.language,

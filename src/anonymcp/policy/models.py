@@ -109,9 +109,7 @@ class GovernancePolicy(BaseModel):
     classification: dict[ClassificationLevel, ClassificationRule] = Field(
         default_factory=lambda: {
             ClassificationLevel.RESTRICTED: ClassificationRule(condition="any HIGH entity"),
-            ClassificationLevel.CONFIDENTIAL: ClassificationRule(
-                condition="any MEDIUM entity"
-            ),
+            ClassificationLevel.CONFIDENTIAL: ClassificationRule(condition="any MEDIUM entity"),
             ClassificationLevel.INTERNAL: ClassificationRule(condition="only LOW entities"),
             ClassificationLevel.PUBLIC: ClassificationRule(condition="no entities detected"),
         }
