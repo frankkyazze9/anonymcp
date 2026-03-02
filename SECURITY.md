@@ -58,12 +58,13 @@ Only clients with a cert signed by your CA will be allowed to connect.
 
 ```bash
 ANONYMCP_REQUIRE_AUTH=true
-ANONYMCP_API_KEYS=prod-key-abc123,staging-key-def456
+ANONYMCP_API_KEYS=pipeline-key:read,admin-key:admin
 ```
 
 Keys are compared using `hmac.compare_digest` (constant-time) to
 prevent timing side-channel attacks. Failed auth attempts are logged
-with client IP and request path.
+with client IP and request path. Keys without a role suffix default
+to `admin` for backward compatibility.
 
 If `REQUIRE_AUTH=true` but no keys are configured, the server refuses
 to start. This is intentional -- failing closed is better than
@@ -94,7 +95,7 @@ For stdio transport (Claude Desktop, local dev), the contextvar
 default is `admin` since the local user should have full access.
 The role system only gates HTTP-authenticated callers.
 
-### 5. PII Leakage Prevention in API Responses
+### 4. PII Leakage Prevention in API Responses
 
 The `analyze_text` tool returns entity type, position (start/end
 offsets), and confidence score. It does **not** return the matched
@@ -106,7 +107,7 @@ The raw matched text is available internally to the anonymizer
 engine (it needs it to do replacements), but it never crosses the
 MCP tool boundary.
 
-### 6. Input Size Limits
+### 5. Input Size Limits
 
 **Default:** 100,000 characters.
 
@@ -120,7 +121,7 @@ can consume all available RAM and stall the server. The default of
 100K characters is generous for typical document processing. Adjust
 based on your workload and available memory.
 
-### 7. Policy Change Auditing
+### 6. Policy Change Auditing
 
 Every call to `manage_policy` with `action="set"` generates a
 RESTRICTED-level audit record that captures the old and new policy
@@ -137,7 +138,7 @@ doesn't need runtime policy changes, don't expose it. You can
 remove it from the tool list by commenting out the `@mcp.tool()`
 decorator or adding a settings guard.
 
-### 8. Container Security
+### 7. Container Security
 
 The Docker image runs as a non-root user (`anonymcp`). The policy
 volume is mounted read-only by default. Audit logs write to a named
@@ -157,7 +158,7 @@ services:
     cap_drop:
       - ALL
 ```
-### 9. Audit Log Security
+### 8. Audit Log Security
 
 Audit records contain:
 
@@ -183,7 +184,7 @@ audit:
   log_anonymized_text: false
 ```
 
-### 10. Webhook Exporter
+### 9. Webhook Exporter
 
 The webhook exporter uses `httpx` with default TLS verification
 (system CA bundle). Audit records sent to webhooks follow the same

@@ -175,7 +175,7 @@ spec:
         - name: anonymcp
           image: anonymcp:latest
           ports:
-            - containerPort: 8000
+            - containerPort: 8100
           env:
             - name: ANONYMCP_TRANSPORT
               value: "streamable-http"
@@ -349,7 +349,7 @@ anonymization:
 | `ANONYMCP_SCORE_THRESHOLD` | `0.4` | Minimum PII detection confidence |
 | `ANONYMCP_AUDIT_ENABLED` | `true` | Enable audit logging |
 | `ANONYMCP_HOST` | `0.0.0.0` | HTTP server bind address |
-| `ANONYMCP_PORT` | `8000` | HTTP server port |
+| `ANONYMCP_PORT` | `8100` | HTTP server port |
 | `ANONYMCP_TLS_CERTFILE` | none | Path to TLS certificate (enables HTTPS) |
 | `ANONYMCP_TLS_KEYFILE` | none | Path to TLS private key |
 | `ANONYMCP_TLS_CA_CERTS` | none | CA certs for mutual TLS (client verification) |
@@ -380,7 +380,7 @@ Drop-in MCP server you can wire into any AI workflow in minutes. Wraps Microsoft
 # Install dev dependencies
 uv sync --dev
 
-# Run tests (36 tests)
+# Run tests (62 tests)
 uv run pytest tests/ -v
 
 # Lint

@@ -15,7 +15,7 @@ AnonyMCP is an open-source MCP (Model Context Protocol) server that wraps Micros
 
 ---
 
-## Current State (v0.1.0 scaffold — March 2, 2026)
+## Current State (v0.1.0 — March 2, 2026)
 
 ### What's Built
 
@@ -32,6 +32,12 @@ The full project scaffold is committed and pushed to GitHub. Here's what exists:
 - 2 resources: `anonymcp://entities/supported`, `anonymcp://policy/current`
 - 1 prompt: `governance_review`
 - Supports stdio and streamable-http transports
+- TLS and mutual TLS support (uvicorn SSL)
+- API key authentication with constant-time comparison
+- Role-based access control (read/admin roles via contextvars)
+- PII leakage prevention (analyze_text strips raw matched text)
+- Input size limits (configurable, default 100K chars)
+- Policy change auditing (RESTRICTED-level audit records)
 
 **Engine (`src/anonymcp/engine/`):**
 - `TextDetector` — wraps Presidio `AnalyzerEngine`, returns normalized `DetectionResult`
@@ -57,7 +63,7 @@ The full project scaffold is committed and pushed to GitHub. Here's what exists:
 - `pyproject.toml` with hatchling build, all deps declared
 - Dockerfile + docker-compose.yaml
 - GitHub Actions CI (lint, typecheck, test)
-- Full test suite in `tests/` (detector, anonymizer, classifier, policy, audit)
+- Full test suite: 62 tests (detector, anonymizer, classifier, policy, audit, RBAC, security smoke)
 - README, CONTRIBUTING, LICENSE, .env.example, .gitignore
 
 ### What's NOT Built Yet (Roadmap)
@@ -65,6 +71,13 @@ The full project scaffold is committed and pushed to GitHub. Here's what exists:
 From the architecture doc (`AnonyMCP-Architecture.md`):
 
 **v0.2.0 — Production Hardening:**
+- [x] TLS / mTLS transport encryption
+- [x] API key authentication (constant-time comparison)
+- [x] Role-based access control (read/admin)
+- [x] PII leakage prevention in API responses
+- [x] Input size limits
+- [x] Policy change auditing
+- [x] Non-root Docker container
 - [ ] Policy hot-reloading (watcher)
 - [ ] Webhook alerting integration (alert rules → webhook exporter)
 - [ ] Custom recognizer plugin system (load from config)
@@ -188,3 +201,34 @@ When starting a new conversation, paste this file and say something like:
   - Added persona sections (Legal/Compliance, CISO/Security, Privacy Engineers/Devs)
   - Added badges, polished formatting, expanded roadmap
 - Updated BOOTSTRAP.md with full session log
+
+### Session 5 — March 2, 2026
+- Fixed README rendering (CDATA artifacts, Mermaid diagram, missing blank lines)
+- Rewrote README tone: direct, informational, no em dashes
+- Added Enterprise Deployment section (HTTP, Kubernetes, Python SDK, CI/CD gate)
+- Implemented TLS support (uvicorn ssl_certfile/ssl_keyfile)
+- Implemented mutual TLS for client cert verification
+- Implemented API key auth middleware (hmac.compare_digest)
+- Server warns on network bind without TLS, refuses to start if REQUIRE_AUTH but no keys
+- Created middleware/ package (auth.py, __init__.py)
+- Updated settings.py with TLS and auth config
+
+### Session 6 — March 2, 2026
+- Full security architecture review (9 findings)
+- Fixed: analyze_text PII leakage (stripped raw text from responses)
+- Fixed: no input size limit (added ANONYMCP_MAX_TEXT_LENGTH=100000)
+- Fixed: unaudited policy changes (RESTRICTED audit record on set)
+- Fixed: Docker running as root (added non-root user)
+- Created SECURITY.md (threat model, 9 security controls, known limitations)
+- Implemented RBAC: read/admin roles via contextvars, key:role format
+- Created middleware/roles.py with role hierarchy and permission map
+- Updated auth.py for role-aware key resolution
+- Added authorization checks on get_audit_log and manage_policy
+- 13 new RBAC unit tests (test_roles.py)
+
+### Session 7 — March 2, 2026
+- Full test suite: 62/62 tests pass, lint clean
+- Created test_security_smoke.py (13 end-to-end security tests)
+  - PII redaction, input limits, RBAC enforcement, policy change audit
+- Doc staleness review: fixed test count, port inconsistencies, section numbering
+- Updated BOOTSTRAP.md with sessions 5-7 and current feature state
