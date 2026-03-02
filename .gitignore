@@ -21,8 +21,8 @@ env/
 # Environment
 .env
 
-# Audit logs (generated at runtime)
-audit/
+# Audit logs (generated at runtime, root-level only)
+/audit/
 
 # OS
 .DS_Store
