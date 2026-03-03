@@ -1,0 +1,19 @@
+flowchart TB
+    Member["Member message\n(SSN, Member ID, claim details)"]
+    Orch[LangChain Orchestrator]
+    AnonyMCP["AnonyMCP sidecar\nscan_and_protect"]
+    LLM[LLM Inference]
+    ClaimsDB[Claims Database]
+    Response[Chatbot Response]
+    Audit["Audit Log\n(JSONL export)"]
+    Compliance["Compliance Team\nget_audit_log → HIPAA binder"]
+
+    Member --> Orch
+    Orch -->|raw text| AnonyMCP
+    AnonyMCP -->|redacted text| Orch
+    AnonyMCP --> Audit
+    Orch -->|clean text| LLM
+    Orch -->|member ID| ClaimsDB
+    ClaimsDB --> Orch
+    LLM --> Response
+    Audit --> Compliance

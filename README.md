@@ -38,15 +38,13 @@ That composability is the point. Instead of every team writing their own PII han
 
 ### Use Cases
 
-**Pre-LLM screening.** Customer sends a support ticket containing their SSN and credit card number. Before the LLM sees it, AnonyMCP detects and redacts the PII. The model gets clean text, your compliance team gets an audit record.
+- **Pre-LLM screening** - Strip PII from user input before it hits the model context window
+- **Post-LLM filtering** - Catch PII the model leaks in generated responses
+- **RAG pipeline governance** - Classify and redact retrieved documents by sensitivity level
+- **CI/CD gate** - Scan prompt templates for hardcoded PII before deployment
+- **Regulatory evidence** - Export audit logs as compliance artifacts instead of writing policy docs nobody reads
 
-**Post-LLM filtering.** Your model generates a summary that accidentally includes a patient name from its context window. AnonyMCP catches it before the response reaches the end user.
-
-**RAG pipeline governance.** Retrieved documents contain PII you didn't know was there. Classify each chunk by sensitivity level, redact anything CONFIDENTIAL or above, and log what was found. Your retrieval pipeline stays clean without manual review.
-
-**Prompt template scanning.** Run AnonyMCP as a CI/CD gate to scan prompt templates before deployment. If someone hardcoded test data with real PII into a prompt, the pipeline catches it before it ships.
-
-**Regulatory evidence.** Every detection, classification, and anonymization action gets logged with timestamps, entity types, confidence scores, and policy versions. When the auditor asks "how do you handle PII in your AI systems?", you point them at the audit log instead of a slide deck.
+See [Real-World Scenarios](#real-world-scenarios) below for detailed walkthroughs of how enterprises would actually deploy this.
 
 ---
 
@@ -105,6 +103,66 @@ Add to your `claude_desktop_config.json`:
 ```
 
 Restart Claude Desktop. You'll see 6 new tools.
+
+---
+
+## Real-World Scenarios
+
+These aren't hypothetical. These are the kinds of deployments AnonyMCP was designed for.
+
+### Health Insurance Support Chatbot
+
+A mid-size health insurer has a customer support chatbot built on an LLM. Members type in messages like "my claim for procedure code 99213 was denied, my SSN is 452-29-1098 and my member ID is HX-8827431, can you check the status?" The chatbot feeds that into a RAG pipeline that pulls from claims databases and policy documents.
+
+**The problem.** Their compliance team flagged that raw member messages, with SSNs, diagnosis codes, and member IDs, were hitting the LLM context window unredacted. Under HIPAA, that's a reportable exposure if the LLM provider ever logged or retained inputs. The legal team wanted evidence that PII was being stripped before model inference, not after.
+
+**The implementation.** AnonyMCP runs as a sidecar in their Kubernetes cluster using `streamable-http` with mTLS (their infra already uses cert-based service mesh auth). The LangChain orchestration layer gets a new step before the LLM call: it sends the raw user message to `scan_and_protect`. The response comes back with the SSN redacted, the member ID replaced with a placeholder, and a classification of `CONFIDENTIAL`. The LLM sees clean text. The orchestration layer separately uses the original member ID to query the claims database, so the lookup still works.
+
+The pipeline agent gets a `read`-role API key. The compliance team gets an `admin`-role key and runs a weekly script calling `get_audit_log` filtered to `classification=CONFIDENTIAL` to produce evidence for their HIPAA compliance binder.
+
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/workflow-health-dark.svg">
+    <source media="(prefers-color-scheme: light)" srcset="docs/workflow-health.svg">
+    <img alt="Health Insurance Chatbot Workflow" src="docs/workflow-health.svg" width="600">
+  </picture>
+</p>
+
+### Legal Document Review with AI Summarization
+
+A corporate legal department at a manufacturing company uses an internal AI tool to summarize contracts, employment agreements, and litigation documents. Lawyers upload PDFs, the system extracts text, and an LLM generates clause summaries and risk flags. About 40 attorneys and paralegals use it daily.
+
+**The problem.** Employment agreements contain employee names, salaries, home addresses, and sometimes medical accommodation details. Litigation docs contain witness names, deposition content, and financial figures under NDA. The General Counsel doesn't want any of that flowing to even an internally-hosted LLM without classification and a record of what was processed. They also need different handling based on sensitivity: public contract boilerplate can go straight through, but employee health information needs full redaction.
+
+**The implementation.** AnonyMCP runs as a Docker Compose service on the legal team's internal server. No TLS needed since it's on `127.0.0.1` behind the company VPN, but they enable API key auth because the server hosts other services. The document pipeline calls `classify_sensitivity` first on each extracted text chunk. Chunks classified as `PUBLIC` or `INTERNAL` pass through to the LLM as-is. `CONFIDENTIAL` chunks go through `anonymize_text`, which replaces names and masks financial figures. `RESTRICTED` chunks (containing medical accommodations, for example) get fully blocked: entity types are logged but the text never reaches the model.
+
+The YAML policy file is co-authored by legal and IT. Legal defines which entity types map to which sensitivity tiers (they added `SALARY` and `MEDICAL_CONDITION` to the `HIGH` list). IT manages the deployment. When the policy changes, legal edits the YAML, IT rolls the deployment, and the audit log captures the policy change event with old and new version numbers.
+
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/workflow-legal-dark.svg">
+    <source media="(prefers-color-scheme: light)" srcset="docs/workflow-legal.svg">
+    <img alt="Legal Document Review Workflow" src="docs/workflow-legal.svg" width="600">
+  </picture>
+</p>
+
+### CRM Platform with AI-Generated Sales Insights
+
+A B2B SaaS company sells a CRM platform. They've shipped an "AI Insights" feature: the system analyzes call transcripts, email threads, and deal notes, then generates deal risk scores, next-step recommendations, and sentiment summaries. The feature uses an external LLM API.
+
+**The problem.** Their CRM data contains PII from their customers' customers: the end contacts in the CRM. Names, phone numbers, email addresses, and sometimes notes like "spoke with CFO, he mentioned his wife's health issues are affecting the timeline." Enterprise prospects (banks, healthcare companies) are asking pointed questions during security reviews: "Does our CRM data get sent to a third-party LLM? What PII controls are in place? Can you prove it?" Without concrete answers, deals are stalling.
+
+**The implementation.** AnonyMCP runs as a shared service in their AWS infrastructure behind an Application Load Balancer. TLS terminates at the ALB, mTLS between the ALB and AnonyMCP instances. Two replicas for availability. Every time the AI Insights feature processes a CRM record, the text passes through `scan_and_protect` before leaving their infrastructure for the external LLM API. The governance policy is tuned for their use case: `PERSON` and `PHONE_NUMBER` get replaced with generic tokens, `EMAIL_ADDRESS` gets masked, and anything health-related gets fully redacted. The LLM still gets enough context to generate useful insights ("spoke with CFO, [REDACTED] are affecting the timeline" is enough to flag a deal risk) but the actual PII never crosses the wire to the third-party provider.
+
+The business unlock is the audit trail. When an enterprise prospect's security team sends their vendor questionnaire asking "describe your data handling for AI features," the product team points to the actual audit log showing every LLM call was pre-processed through a governance layer, with entity counts, classification levels, and policy versions. That turns a three-week security review into a check-the-box exercise. They also surface a lightweight version of the audit data in-app, a dashboard showing CRM admins how many PII entities were detected and anonymized across their account, which becomes a selling point rather than a liability.
+
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/workflow-crm-dark.svg">
+    <source media="(prefers-color-scheme: light)" srcset="docs/workflow-crm.svg">
+    <img alt="CRM AI Insights Workflow" src="docs/workflow-crm.svg" width="600">
+  </picture>
+</p>
 
 ---
 

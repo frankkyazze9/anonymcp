@@ -1,0 +1,15 @@
+flowchart TB
+    CRM["CRM Record\n(call transcripts, deal notes)"]
+    AnonyMCP["AnonyMCP\nscan_and_protect"]
+    ExtLLM["External LLM API\n(third-party provider)"]
+    Insights["AI Insights\n(risk scores, sentiment)"]
+    Audit["Audit Log"]
+    Dashboard["In-app Admin Dashboard\n(entity counts, classifications)"]
+    SecReview["Vendor Security Review\naudit export as evidence"]
+
+    CRM --> AnonyMCP
+    AnonyMCP -->|anonymized text| ExtLLM
+    AnonyMCP --> Audit
+    ExtLLM --> Insights
+    Audit --> Dashboard
+    Audit --> SecReview

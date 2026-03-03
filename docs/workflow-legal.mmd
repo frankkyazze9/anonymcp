@@ -1,0 +1,22 @@
+flowchart TB
+    Doc["Uploaded Document\n(contract, employment agreement)"]
+    Extract[Text Extraction]
+    Classify["AnonyMCP\nclassify_sensitivity"]
+    Public["PUBLIC / INTERNAL\npass through"]
+    Confidential["CONFIDENTIAL\nanonymize_text"]
+    Restricted["RESTRICTED\nblock from LLM"]
+    LLM[LLM Summarizer]
+    Summary[Clause Summary + Risk Flags]
+    Audit["Audit Log\n(entity types, classifications)"]
+
+    Doc --> Extract
+    Extract --> Classify
+    Classify -->|public / internal| Public
+    Classify -->|confidential| Confidential
+    Classify -->|restricted| Restricted
+    Public --> LLM
+    Confidential -->|redacted text| LLM
+    Restricted -.->|blocked| Audit
+    LLM --> Summary
+    Classify --> Audit
+    Confidential --> Audit
