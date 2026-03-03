@@ -428,7 +428,7 @@ Drop-in MCP server you can wire into any AI workflow in minutes. Wraps Microsoft
 # Install dev dependencies
 uv sync --dev
 
-# Run tests (62 tests)
+# Run tests (67 tests)
 uv run pytest tests/ -v
 
 # Lint

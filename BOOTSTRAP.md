@@ -63,7 +63,7 @@ The full project scaffold is committed and pushed to GitHub. Here's what exists:
 - `pyproject.toml` with hatchling build, all deps declared
 - Dockerfile + docker-compose.yaml
 - GitHub Actions CI (lint, typecheck, test)
-- Full test suite: 62 tests (detector, anonymizer, classifier, policy, audit, RBAC, security smoke)
+- Full test suite: 67 tests (detector, anonymizer, classifier, policy, audit, RBAC, security smoke, CLI)
 - README, CONTRIBUTING, LICENSE, .env.example, .gitignore
 
 ### What's NOT Built Yet (Roadmap)
@@ -227,7 +227,7 @@ When starting a new conversation, paste this file and say something like:
 - 13 new RBAC unit tests (test_roles.py)
 
 ### Session 7 — March 2, 2026
-- Full test suite: 62/62 tests pass, lint clean
+- Full test suite: 67/67 tests pass, lint clean
 - Created test_security_smoke.py (13 end-to-end security tests)
   - PII redaction, input limits, RBAC enforcement, policy change audit
 - Doc staleness review: fixed test count, port inconsistencies, section numbering
