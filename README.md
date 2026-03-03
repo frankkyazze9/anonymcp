@@ -83,8 +83,7 @@ See [Real-World Scenarios](#real-world-scenarios) below for detailed walkthrough
 ```bash
 git clone https://github.com/frankkyazze9/anonymcp.git
 cd anonymcp
-uv sync
-uv run python -m spacy download en_core_web_lg
+uv sync          # installs all deps including the spaCy model
 ```
 
 ### Claude Desktop (for prototyping)

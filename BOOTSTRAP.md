@@ -232,3 +232,21 @@ When starting a new conversation, paste this file and say something like:
   - PII redaction, input limits, RBAC enforcement, policy change audit
 - Doc staleness review: fixed test count, port inconsistencies, section numbering
 - Updated BOOTSTRAP.md with sessions 5-7 and current feature state
+
+### Session 8 — March 2-3, 2026
+- Fixed CI pipeline (root cause: `.gitignore` pattern `audit/` hiding source code)
+  - Changed to `/audit/` (root-only match), committed 7 missing audit source files
+  - Fixed mypy strict errors (12 total), added types-PyYAML/types-aiofiles stubs
+  - Removed broken spacy download CI step (uv sync handles it via URL source)
+  - All three CI jobs (lint, typecheck, test) green
+- Set up branch protection on main (required PR reviews, status checks, no force push)
+- Replaced Mermaid diagrams with pre-rendered SVG (GitHub mobile doesn't render Mermaid)
+  - Light/dark variants using `<picture>` element with `prefers-color-scheme`
+- Added 3 detailed enterprise use case scenarios with workflow diagrams
+  - Health Insurance Chatbot (HIPAA, K8s sidecar, mTLS)
+  - Legal Document Review (Docker Compose, tiered classification)
+  - CRM AI Insights (external LLM, audit as sales enablement)
+- Created GitHub release v0.1.0
+- Submitted PR to awesome-mcp-servers (#2638)
+- Operational smoke test: verified all 6 tools work over streamable-http via MCP SDK client
+- Final doc staleness fixes (removed stale spacy download instruction from README)
