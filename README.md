@@ -340,7 +340,7 @@ Every detection, classification, and anonymization action gets logged with times
 
 ### For CISOs and Security Leaders
 
-AnonyMCP is a security control that sits in the data path and enforces sensitivity policies *before* data reaches LLMs or downstream systems. Alerting rules trigger on high-severity classifications or entity count thresholds and push to your existing incident response via webhooks. Fully self-hosted. No data leaves your infrastructure. The policy engine supports hot-swapping, so governance rules update without service restarts.
+AnonyMCP is a security control that sits in the data path and enforces sensitivity policies *before* data reaches LLMs or downstream systems. Alerting rules trigger on high-severity classifications or entity count thresholds and push to your existing incident response via webhooks. **Fully self-hosted. No data leaves your infrastructure.** The policy engine supports hot-swapping, so governance rules update without service restarts.
 
 ### For Privacy Engineers and Developers
 
