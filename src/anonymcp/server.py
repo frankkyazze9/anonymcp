@@ -573,6 +573,21 @@ def _run_http() -> None:
 
     starlette_app = mcp.streamable_http_app()
 
+    # Health check — unauthenticated so K8s probes and load balancers work
+    from starlette.responses import JSONResponse
+    from starlette.routing import Route
+
+    async def _health_check(request: Any) -> JSONResponse:
+        return JSONResponse(
+            {
+                "status": "ok",
+                "policy": policy_engine.policy.name,
+                "policy_version": policy_engine.policy.version,
+            }
+        )
+
+    starlette_app.routes.append(Route("/health", _health_check))
+
     # Wire up API key auth if configured
     if settings.require_auth:
         if not settings.api_keys:
@@ -636,8 +651,46 @@ def _run_http() -> None:
     asyncio.run(server.serve())
 
 
+def _parse_args() -> None:
+    """Parse CLI flags and override settings where provided."""
+    import argparse
+
+    parser = argparse.ArgumentParser(
+        prog="anonymcp",
+        description="AnonyMCP — data governance as a composable MCP layer.",
+    )
+    parser.add_argument(
+        "--transport",
+        choices=["stdio", "streamable-http"],
+        default=None,
+        help="Transport mode (env: ANONYMCP_TRANSPORT, default: stdio)",
+    )
+    parser.add_argument(
+        "--port",
+        type=int,
+        default=None,
+        help="HTTP server port (env: ANONYMCP_PORT, default: 8100)",
+    )
+    parser.add_argument(
+        "--host",
+        default=None,
+        help="HTTP server bind address (env: ANONYMCP_HOST, default: 0.0.0.0)",
+    )
+
+    args = parser.parse_args()
+
+    # CLI flags override env-var / .env settings
+    if args.transport is not None:
+        settings.transport = args.transport
+    if args.port is not None:
+        settings.port = args.port
+    if args.host is not None:
+        settings.host = args.host
+
+
 def main() -> None:
     """Run the AnonyMCP server."""
+    _parse_args()
     _init_components()
 
     logger.info(

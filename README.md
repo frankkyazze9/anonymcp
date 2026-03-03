@@ -86,6 +86,23 @@ cd anonymcp
 uv sync          # installs all deps including the spaCy model
 ```
 
+### Explore the CLI
+
+```bash
+anonymcp --help
+```
+
+### HTTP Server (for pipelines and integrations)
+
+```bash
+# Start the server
+anonymcp --transport streamable-http --port 8100
+
+# Verify it's running
+curl http://localhost:8100/health
+# → {"status":"ok","policy":"default","policy_version":"1.0"}
+```
+
 ### Claude Desktop (for prototyping)
 
 Add to your `claude_desktop_config.json`:
